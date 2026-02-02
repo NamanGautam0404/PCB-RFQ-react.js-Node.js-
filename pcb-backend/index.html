@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PCB Tracker</title>
+</head>
+<body>
+  <h1>PCB Tracker Backend</h1>
+  <button id="loadRfqs">Load RFQs</button>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById('loadRfqs').onclick = async () => {
+      const res = await fetch('http://localhost:5000/rfqs');
+      const data = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    };
+  </script>
+</body>
+</html>
