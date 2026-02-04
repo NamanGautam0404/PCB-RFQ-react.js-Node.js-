@@ -118,7 +118,7 @@ const getRFQ = async (req, res) => {
     const price = calculateFinalPrice(rfq.supplierQuote || 0, rfq.margin, rfq.quantity);
 
     // Add activity log entry
-    const logEntry = createLog(req.user, 'RFQ Viewed', `Viewed RFQ ${rfq.rfqId}`, rfq);
+    const logEntry = createLog({ name: req.user.name }, 'RFQ Viewed', `Viewed RFQ ${rfq.rfqId}`, rfq);
     await RFQ.findByIdAndUpdate(req.params.id, {
       $push: { activityLog: logEntry }
     });
@@ -171,7 +171,7 @@ const createRFQ = async (req, res) => {
       salesPerson: req.user._id,
       status: 'new',
       stage: 'rfq_received',
-      activityLog: [createLog(req.user, 'RFQ Created', `New RFQ from ${customerName}`, { customerName, partNumber })]
+      activityLog: [createLog({ name: req.user.name }, 'RFQ Created', `New RFQ from ${customerName}`, { customerName, partNumber })]
     });
 
     res.status(201).json({
@@ -220,7 +220,7 @@ const updateRFQ = async (req, res) => {
     });
 
     // Add activity log
-    const logEntry = createLog(req.user, 'RFQ Updated', 'RFQ details updated', rfq);
+    const logEntry = createLog({ name: req.user.name }, 'RFQ Updated', 'RFQ details updated', rfq);
     rfq.activityLog.push(logEntry);
 
     await rfq.save();
@@ -325,7 +325,7 @@ const updateSupplierQuote = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Supplier Quote',
       `Received supplier quote: ₹${quote}`,
       rfq
@@ -388,7 +388,7 @@ const updateMargin = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Margin Updated',
       `Changed from ${oldMargin}% to ${margin}%`,
       rfq
@@ -447,7 +447,7 @@ const updateStage = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Stage Updated',
       `Changed from ${oldStage} to ${stage}`,
       rfq
@@ -535,7 +535,7 @@ const sendToCustomer = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Sent to Customer',
       'Quote sent to customer',
       rfq
@@ -597,7 +597,7 @@ const addCommunication = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Communication Added',
       `${direction} ${type}: ${message.substring(0, 50)}...`,
       rfq
@@ -673,7 +673,7 @@ const addNote = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Note Added',
       `${type} note: ${message.substring(0, 50)}...`,
       rfq
@@ -727,7 +727,7 @@ const markComplete = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Completed',
       'RFQ marked as completed',
       rfq
@@ -780,7 +780,7 @@ const updateUrgency = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Urgency Updated',
       `Changed from ${oldUrgency} to ${urgency}`,
       rfq
@@ -833,7 +833,7 @@ const updateConfidence = async (req, res) => {
 
     // Add activity log
     const logEntry = createLog(
-      req.user,
+      { name: req.user.name },
       'Confidence Updated',
       `Changed from ${oldConfidence}% to ${confidence}%`,
       rfq

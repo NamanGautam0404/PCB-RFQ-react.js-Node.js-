@@ -163,28 +163,32 @@ const rfqSchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to generate RFQ ID
-rfqSchema.pre('save', async function(next) {
+rfqSchema.pre('save', async function() {
   if (!this.rfqId) {
-    // Generate RFQ ID like RFQ-001, RFQ-002, etc.
-    const lastRFQ = await this.constructor.findOne(
-      {},
-      {},
-      { sort: { 'createdAt': -1 } }
-    );
-    
-    let lastNumber = 0;
-    if (lastRFQ && lastRFQ.rfqId) {
-      const match = lastRFQ.rfqId.match(/RFQ-(\d+)/);
-      if (match) {
-        lastNumber = parseInt(match[1]);
+    try {
+      // Generate RFQ ID like RFQ-001, RFQ-002, etc.
+      const lastRFQ = await this.constructor.findOne(
+        {},
+        { rfqId: 1 },
+        { sort: { createdAt: -1 } }
+      );
+      
+      let lastNumber = 0;
+      if (lastRFQ && lastRFQ.rfqId) {
+        const match = lastRFQ.rfqId.match(/RFQ-(\d+)/);
+        if (match) {
+          lastNumber = parseInt(match[1]);
+        }
       }
+      
+      this.rfqId = `RFQ-${String(lastNumber + 1).padStart(3, '0')}`;
+    } catch (error) {
+      // Fallback RFQ ID if error
+      this.rfqId = `RFQ-${Date.now().toString().slice(-6)}`;
     }
-    
-    this.rfqId = `RFQ-${String(lastNumber + 1).padStart(3, '0')}`;
   }
   
-  this.updatedAt = Date.now();
-  next();
+  this.updatedAt = new Date();
 });
 
 // Calculate final price method (matches frontend function)
