@@ -1,0 +1,465 @@
+================================================================================
+                    PCB RFQ TRACKER - COMPLETE DOCUMENTATION
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Overview
+2. What is this application?
+3. Tech Stack
+4. Features
+5. How it Works (Architecture)
+6. File Structure
+7. User Roles
+8. Data Flow
+9. API Endpoints
+10. Database Schema
+11. Setup Guide
+12. Troubleshooting
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+The PCB RFQ Tracker is a web-based application designed to help businesses
+manage their PCB (Printed Circuit Board) Requests For Quotes. It provides
+a complete workflow for tracking customer inquiries, getting supplier quotes,
+calculating margins, and managing the sales process.
+
+================================================================================
+2. WHAT IS THIS APPLICATION?
+================================================================================
+
+Think of this as a "CRM for PCB Quotes" - it helps sales teams:
+
+• Track incoming quote requests from customers
+• Get quotes from PCB manufacturers/suppliers
+• Calculate selling prices based on costs + margin
+• Move quotes through different stages (Lead → Quote → Won/Lost)
+• Log all customer communications
+• See dashboards with sales metrics
+
+REAL-WORLD USE CASE:
+Customer calls: "I need 100 PCBs, 2 layers,FR4 material"
+Salesperson enters this into the system
+System gets supplier pricing
+Salesperson adds markup margin
+Quote is sent to customer
+Follow-up calls are logged
+Win/Loss is tracked
+
+================================================================================
+3. TECH STACK
+================================================================================
+
+FRONTEND (What users see):
+• React.js - User interface framework
+• Tailwind CSS - Styling
+• Lucide React - Icons
+• React Router - Navigation
+
+BACKEND (Server logic):
+• Node.js - JavaScript runtime
+• Express.js - Web framework
+• MongoDB - Database
+• Mongoose - MongoDB helper library
+• JWT - Authentication tokens
+• bcryptjs - Password hashing
+
+HOSTING/DEPLOYMENT:
+• GitHub - Code storage
+• MongoDB Atlas - Cloud database
+• Render/Vercel - Deployment platforms
+
+================================================================================
+4. FEATURES
+================================================================================
+
+AUTHENTICATION:
+✓ User registration with email/password
+✓ Secure login with JWT tokens
+✓ Role-based access (Salesperson vs Manager)
+✓ Protected routes that require login
+✓ Automatic logout on token expiration
+
+RFQ (REQUEST FOR QUOTE) MANAGEMENT:
+✓ Create new RFQs with customer info
+✓ View all RFQs in a table/grid
+✓ Edit RFQ details
+✓ Delete RFQs
+✓ Track RFQ status through stages
+✓ Search and filter RFQs
+✓ View detailed RFQ information
+
+QUOTE MANAGEMENT:
+✓ Add supplier quotes (cost price)
+✓ Calculate selling price based on margin
+✓ Update margins for individual RFQs
+✓ Compare supplier quotes
+✓ Track price changes over time
+
+STAGE TRACKING:
+RFQs move through these stages:
+1. NEW - Just received
+2. QUALIFIED - Customer verified
+3. QUOTED - Price sent to customer
+4. NEGOTIATION - Back and forth
+5. WON - Customer accepted
+6. LOST - Customer declined
+7. COMPLETED - Order fulfilled
+
+COMMUNICATION LOG:
+✓ Log phone calls
+✓ Log emails
+✓ Log meetings
+✓ Log notes
+✓ Timestamps for all entries
+✓ View communication history
+
+DASHBOARDS:
+SALES DASHBOARD:
+• List of all RFQs
+• Quick actions
+• Stage overview
+• Communication buttons
+
+MANAGER DASHBOARD:
+• Overview statistics
+• All RFQs with more details
+• Sales metrics
+• Activity logs
+• User management
+
+ACTIVITY LOG:
+• Track all changes in the system
+• Who did what and when
+• Audit trail for compliance
+• Full history of RFQ modifications
+
+================================================================================
+5. HOW IT WORKS (ARCHITECTURE)
+================================================================================
+
+REQUEST/RESPONSE CYCLE:
+
+    ┌─────────────┐         HTTPS         ┌──────────────┐
+    │   BROWSER  │◄──────────────────────►│   SERVER    │
+    │  (User)    │                        │  Node.js    │
+    └─────────────┘                        └──────────────┘
+          │                                      │
+          │  1. User clicks button               │
+          │  2. Request sent to API              │
+          │  3. Server processes request        │
+          │  4. Server queries database          │
+          │  5. Data sent back to browser       │
+          ▼                                      ▼
+
+STEP-BY-STEP EXAMPLE (Creating an RFQ):
+
+1. User fills form with customer info
+2. Frontend sends POST /api/rfqs with data
+3. Express router receives request
+4. Controller validates data
+5. MongoDB saves new RFQ document
+6. Server responds with success + new RFQ
+7. Frontend updates screen
+
+AUTHENTICATION FLOW:
+
+1. User enters email/password
+2. Frontend sends to POST /api/auth/login
+3. Server verifies password with bcrypt
+4. Server creates JWT token
+5. Token sent back to frontend
+6. Frontend stores token in memory
+7. All future requests include: Authorization: Bearer <token>
+8. Server validates token on every request
+
+================================================================================
+6. FILE STRUCTURE
+================================================================================
+
+PCB TRACKER/
+│
+├── frontend/                          # React Frontend Application
+│   ├── src/
+│   │   ├── components/                # Reusable UI components
+│   │   │   ├── ActivityLogModal.js   # Show activity history
+│   │   │   ├── LoginPage.js          # Login screen
+│   │   │   ├── ManagerDashboard.js   # Manager view
+│   │   │   ├── NewRFQModal.js        # Create RFQ form
+│   │   │   ├── RFQDetailModal.js     # View RFQ details
+│   │   │   ├── SalesDashboard.js     # Sales view
+│   │   │   └── UserModal.js          # User management
+│   │   ├── utils/
+│   │   │   ├── constants.js          # App constants
+│   │   │   └── helpers.js            # Helper functions
+│   │   ├── api.js                    # API configuration
+│   │   ├── App.js                    # Main app component
+│   │   └── index.js                  # Entry point
+│   ├── public/
+│   └── package.json
+│
+├── pcb-backend/                       # Express Backend Application
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js           # MongoDB connection
+│   │   ├── controllers/              # Business logic
+│   │   │   ├── authController.js      # Auth logic
+│   │   │   └── rfqController.js       # RFQ logic
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js      # Auth verification
+│   │   ├── models/                   # Database schemas
+│   │   │   ├── RFQ.js                # RFQ data structure
+│   │   │   └── Users.js             # User data structure
+│   │   ├── routes/                   # API routes
+│   │   │   ├── authRoutes.js         # Auth endpoints
+│   │   │   └── rfqRoutes.js         # RFQ endpoints
+│   │   └── utils/                    # Helper functions
+│   ├── server.js                     # Entry point
+│   └── package.json
+│
+├── .gitignore                        # Git ignore rules
+├── README.md                          # Quick reference
+└── package.json                       # Root package file
+
+================================================================================
+7. USER ROLES
+================================================================================
+
+SALESPERSON:
+• Can view RFQs assigned to them
+• Can create new RFQs
+• Can update RFQ details
+• Can add communications
+• Cannot delete RFQs
+• Cannot access manager features
+
+MANAGER:
+• All salesperson permissions
+• Can view ALL RFQs
+• Can delete any RFQ
+• Can manage users
+• Can view activity logs
+• Can see analytics/statistics
+
+================================================================================
+8. DATA FLOW
+================================================================================
+
+AUTHENTICATION DATA FLOW:
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│  Login  │───►│  Validate│───►│ Generate│───►│  Store  │
+│   Form  │    │Password │    │  Token  │    │  Token  │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+
+RFQ DATA FLOW:
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│  Create │───►│ Validate│───►│  Save   │───►│  Return │
+│   RFQ   │    │  Data   │    │ MongoDB │    │   RFQ   │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+
+QUERY DATA FLOW:
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│  API    │───►│  Build  │───►│ Query   │───►│  Send   │
+│ Request │    │  Query  │    │ MongoDB │    │  JSON   │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+
+================================================================================
+9. API ENDPOINTS
+================================================================================
+
+AUTHENTICATION ENDPOINTS:
+┌────────────────────────────────────────────────────────────┐
+│ POST   /api/auth/register     - Create new account        │
+│ POST   /api/auth/login        - Login                    │
+│ GET    /api/auth/me           - Get current user         │
+│ POST   /api/auth/logout       - Logout                   │
+└────────────────────────────────────────────────────────────┘
+
+RFQ ENDPOINTS:
+┌────────────────────────────────────────────────────────────┐
+│ GET    /api/rfqs              - List all RFQs            │
+│ POST   /api/rfqs              - Create new RFQ            │
+│ GET    /api/rfqs/:id          - Get single RFQ            │
+│ PUT    /api/rfqs/:id          - Update RFQ                │
+│ DELETE /api/rfqs/:id          - Delete RFQ               │
+│ PUT    /api/rfqs/:id/supplier-quote  - Add supplier cost │
+│ PUT    /api/rfqs/:id/margin   - Update margin             │
+│ PUT    /api/rfqs/:id/stage    - Change stage             │
+│ POST   /api/rfqs/:id/send-to-customer - Send quote        │
+│ POST   /api/rfqs/:id/communication - Add communication    │
+│ POST   /api/rfqs/:id/note     - Add note                 │
+│ PUT    /api/rfqs/:id/complete - Mark complete            │
+└────────────────────────────────────────────────────────────┘
+
+================================================================================
+10. DATABASE SCHEMA
+================================================================================
+
+USERS COLLECTION:
+{
+  _id: ObjectId,
+  name: String,           // Full name
+  email: String,          // Email (unique)
+  password: String,       // Hashed password
+  role: String,           // "sales" or "manager"
+  createdAt: Date,
+  updatedAt: Date
+}
+
+RFQ COLLECTION:
+{
+  _id: ObjectId,
+  customerName: String,
+  customerEmail: String,
+  customerPhone: String,
+  
+  // PCB Specifications
+  layers: Number,         // 2, 4, 6, 8, etc.
+  dimensions: String,     // e.g., "50mm x 50mm"
+  quantity: Number,
+  material: String,       // FR4, Rogers, etc.
+  
+  // Pricing
+  supplierQuote: Number, // Cost from supplier
+  margin: Number,        // Percentage markup
+  finalPrice: Number,     // Calculated selling price
+  
+  // Tracking
+  stage: String,          // NEW, QUALIFIED, QUOTED, etc.
+  status: String,         // Active, Won, Lost, Completed
+  
+  // Relations
+  createdBy: ObjectId,    // User ID
+  
+  // History
+  communications: [
+    {
+      type: String,       // call, email, meeting, note
+      message: String,
+      direction: String,  // incoming, outgoing
+      timestamp: Date
+    }
+  ],
+  
+  // Activity tracking
+  activityLog: [
+    {
+      action: String,
+      user: String,
+      details: String,
+      timestamp: Date
+    }
+  ],
+  
+  createdAt: Date,
+  updatedAt: Date
+}
+
+================================================================================
+11. SETUP GUIDE
+================================================================================
+
+LOCAL DEVELOPMENT SETUP:
+
+Step 1: Install Node.js
+- Download from https://nodejs.org
+- Choose LTS version
+- Run installer
+
+Step 2: Clone the repository
+- Copy GitHub URL
+- Run: git clone <URL>
+- cd into project folder
+
+Step 3: Install backend dependencies
+- cd pcb-backend
+- npm install
+- (This installs: express, mongoose, cors, dotenv, jwt, bcrypt)
+
+Step 4: Configure environment
+- Copy .env.example to .env
+- Edit .env with your MongoDB URI
+- Get free MongoDB Atlas account if needed
+
+Step 5: Install frontend dependencies
+- cd ../frontend
+- npm install
+- (This installs: react, tailwind, lucide, etc.)
+
+Step 6: Start development servers
+Terminal 1: cd pcb-backend && npm start
+Terminal 2: cd frontend && npm start
+
+Step 7: Access the application
+- Open http://localhost:3000
+- Backend API: http://localhost:5001
+
+================================================================================
+12. TROUBLESHOOTING
+================================================================================
+
+ISSUE: "Cannot connect to MongoDB"
+SOLUTION: Check your MONGODB_URI in .env file
+          Ensure MongoDB Atlas IP whitelist includes your IP
+          Check internet connection
+
+ISSUE: "Login not working"
+SOLUTION: Clear browser cache
+          Check email/password
+          Ensure user exists in database
+          Check JWT_SECRET matches
+
+ISSUE: "Port already in use"
+SOLUTION: Find process using port: lsof -i :5000
+          Kill it: kill <PID>
+          Or use different port in .env
+
+ISSUE: "CORS error"
+SOLUTION: Add frontend URL to FRONTEND_URL in .env
+          Restart backend server
+
+ISSUE: "React app not loading"
+SOLUTION: Check browser console for errors
+          Ensure npm install completed
+          Try: cd frontend && npm start
+
+ISSUE: "Styles not loading"
+SOLUTION: Check Tailwind is configured
+          Run: cd frontend && npm install tailwindcss
+          Rebuild: npm run build
+
+================================================================================
+QUICK REFERENCE COMMANDS
+================================================================================
+
+# Install dependencies
+cd pcb-backend && npm install
+cd frontend && npm install
+
+# Start development servers
+cd pcb-backend && npm start      # Backend on port 5001
+cd frontend && npm start         # Frontend on port 3000
+
+# Build for production
+cd frontend && npm run build
+
+# Git commands
+git add .
+git commit -m "message"
+git push origin main
+
+# Check MongoDB connection
+node pcb-backend/setup-mongodb.js
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+
+For additional help, check:
+- README.md for deployment instructions
+- GitHub Issues for known problems
+- MongoDB Atlas documentation for database setup
+- React documentation for frontend customization
+
